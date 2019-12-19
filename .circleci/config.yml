@@ -1,0 +1,25 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:7.10
+      - image: budtmo/docker-android-x86-6.0
+    working_directory: ~/repo
+            
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run: yarn install              
+      - run:
+          name: start android-container
+          command:  docker run --privileged -d -p 6080:6080 -p 5554:5554 -p 5555:5555 -e DEVICE="Samsung Galaxy S6" --name android-container budtmo/docker-android-x86-6.0
+      - run: curl --retry 10 --retry-delay 5 -v http://0.0.0.0:6080 
+      - run: docker ps
+      - run: 
+          name: 'waiting to start'
+          command: |
+                for i in {1..20};
+                do
+                  docker ps
+                  sleep 5
+                  done
